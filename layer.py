@@ -11,6 +11,7 @@ class nconv(nn.Module):
         super(nconv,self).__init__()
 
     def forward(self,x, A):
+        # Einstein summation convention
         x = torch.einsum('ncwl,vw->ncvl',(x,A))
         return x.contiguous()
 
@@ -54,8 +55,10 @@ class prop(nn.Module):
 
 class mixprop(nn.Module):
     def __init__(self,c_in,c_out,gdep,dropout,alpha):
+        # gdep is graph neural network depth
         super(mixprop, self).__init__()
         self.nconv = nconv()
+        # this is a Conv2d
         self.mlp = linear((gdep+1)*c_in,c_out)
         self.gdep = gdep
         self.dropout = dropout
@@ -63,10 +66,20 @@ class mixprop(nn.Module):
 
 
     def forward(self,x,adj):
+        # maybe ask yifan about this X
+        # torch.eye Returns a 2-D tensor with ones on the diagonal and zeros elsewhere.
+        # this is to calculate A + I
         adj = adj + torch.eye(adj.size(0)).to(x.device)
+        # this is D_tilde_ij on page 5 of the paper, if I am not wrong
         d = adj.sum(1)
+        # this is H(0) which initially is H_in (i.e. x)
         h = x
         out = [h]
+        # this is A_tilde as paper page 5 says
+        # A_tilde = D^-1 * (A+I)
+        # d.view(-1,1) means Pytorch will create a copy of d and change its
+        # dimensions as (-1,1) -1 can be inferred, i.e., should be the total
+        # number of numbers in d
         a = adj / d.view(-1, 1)
         for i in range(self.gdep):
             h = self.alpha*x + (1-self.alpha)*self.nconv(h,a)
