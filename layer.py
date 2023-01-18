@@ -89,6 +89,8 @@ class mixprop(nn.Module):
         return ho
 
 class dy_mixprop(nn.Module):
+    # i am little confused because this class
+    # is not used anywhere
     def __init__(self,c_in,c_out,gdep,dropout,alpha):
         super(dy_mixprop, self).__init__()
         self.nconv = dy_nconv()
@@ -135,6 +137,8 @@ class dy_mixprop(nn.Module):
 class dilated_1D(nn.Module):
     def __init__(self, cin, cout, dilation_factor=2):
         super(dilated_1D, self).__init__()
+        # modulelist is a list of modules
+        # like an array of numbers
         self.tconv = nn.ModuleList()
         self.kernel_set = [2,3,6,7]
         self.tconv = nn.Conv2d(cin,cout,(1,7),dilation=(1,dilation_factor))
